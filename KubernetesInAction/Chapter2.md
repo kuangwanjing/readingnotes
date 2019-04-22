@@ -42,7 +42,7 @@ https://books.apple.com/us/book/kubernetes-in-action/id1437029204
 
 3. Have a basic sense of how Pods, ReplicationControllers, and Services relate to one another
 
-   ![View on pods, rc and service](/Users/kuangwanjing/Documents/Books/ReadingNotes/KubernetesInAction/ch2_1.jpg)
+   ![View on pods, rc and service](https://github.com/kuangwanjing/readingnotes/raw/master/KubernetesInAction/ch2_1.jpg)
 
    * Pods are the basic deployment unit which may contain one or more containers. They look like an independent space with individual interal ip address and port number.
 
