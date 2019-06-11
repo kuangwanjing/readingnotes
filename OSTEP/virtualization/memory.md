@@ -103,29 +103,49 @@ Advantages of paging:
 1. it improves the flexibility of using the address space effectively. 
 2. Bring up simplicity to manage free space with **inverted page table**.
 
-Problem with page table: too big to store in memory; too slow since the page table is in memory and the MMU has to retrieve the page table entry from the memory. 
+Problem with page table:  too slow since the page table is in memory and the MMU has to retrieve the page table entry from the memory. too big to store in memory;
 
-1 // Extract the VPN from the virtual address
-2 VPN = (VirtualAddress & VPN_MASK) >> SHIFT
-3
-4 // Form the address of the page-table entry (PTE)
-5 PTEAddr = PTBR + (VPN * sizeof(PTE))
-6
-7 // Fetch the PTE
-8 PTE = AccessMemory(PTEAddr)
-9
-10 // Check if process can access the page
-11 if (PTE.Valid == False)
-12 RaiseException(SEGMENTATION_FAULT)
-13 else if (CanAccess(PTE.ProtectBits) == False)
-14 RaiseException(PROTECTION_FAULT)
-15 else
-16 // Access is OK: form physical address and fetch it
-17 offset = VirtualAddress & OFFSET_MASK
-18 PhysAddr = (PTE.PFN << PFN_SHIFT) | offset
-19 Register = AccessMemory(PhysAddr)
+### 5. Fixing the first problem — using TLB
 
-Memory trace: spatial and temporal locality.
+Performance bottleneck of using paging is having to retrieve the page number corresponding to every virtual address when translating va to pa. Using TLB (translation-lookaside buffer) to speed up the translation.
+
+![tlb-control-flow](../img/tlb-control-flow.png)
+
+From line 3 - 9, the translation look up the PFN in the entries of TLB (which are often a concurrent searching). From line 11 - 17, this is the normal translation retrieving PTE from memory. From 18 - 19, it update the TLB and retries the instructions and the translation goes from the begining till end again. 
+
+The TLB, like all caches, is built on the premise that in the common case, translations are found in the cache(e.g looping the array) — due to spatial locality. Also temporal locality is one reason to adopt this mechanism.
+
+Who is handling the TLB missing event?
+
+1. Hardware
+2. Software — OS. When the hardware gets a miss, raises the privilege level into kernel mode and jums to the trap handler. The return-from-trap is different from other traps — it resume the execution of the instruction that causes the trap but not the next instruction like others. <u>Also this takes the risk of infinite loop of translating the address of the miss handle and trapping into the miss handle</u>. To avoid this, the OS can keep the handle in physical memory or setting some entries of TLB to be permanently valid so that the hardware can always find the hit for the handle. 
+
+The TLB is fully-associative — the translation can be anywhere of the TLB.  Searching the entries of the TLB is parallel. 
+
+What about context switch? How to distinguish the entries with the same VPN? Solutions:
+
+1. Flushing the TLB when performing context switch — cost much overhead when OS is performing frequent context switch. (Also the context switch has couple with the address translation)
+2. Use an identifier to pointout the process for which the VPN represents (ASID)
+
+What about page sharing ? The same physical page is mapped to different virtual pages by processes and occupies more than one entries. 
+
+Replacement Policy: LRU or random policy
+
+### 6. Fixing the second problem — using a smaller page table
+
+Solution 1: Bigger page? — No because of internal fragmentation
+
+Solution 2: Hybrid of Paging and Segmentation but still many entries remain unused. 
+
+Solution 3: Multi-level Paging — page directory. Divide the page table furthermore to minimize the "internal fragmentation" of the page table. time-space tradeoff between translation time and occupying memory space.
+
+Solution 4: Inverted Page Table — a table where each entry represents a page in physical memory and contains the correpsonding virtual page number. It requires a hash table to speed up the search for the physical page. 
+
+
+
+### 7. Swapping
+
+
 
   
 
