@@ -141,11 +141,38 @@ Solution 3: Multi-level Paging — page directory. Divide the page table further
 
 Solution 4: Inverted Page Table — a table where each entry represents a page in physical memory and contains the correpsonding virtual page number. It requires a hash table to speed up the search for the physical page. 
 
-
-
 ### 7. Swapping
 
+We can consider the whole storage system as memory hierarchy (cache, memory, disk)
 
+The OS support a very large address space for a single process. This makes writing program become natural and simple, requesting as much memory as the program needs without considering whether the requested memory fit in the address space. And the OS provides such an illusion that it can support such a large memory for the process. 
 
-  
+How to fit that large memory layout? With the help of disk space — swap space. 
 
+How to distinguish that whether a page is in memory or on disk? — Present bit. If a page is not present, a page fault is raised and the execution is raised up to kernel mode and jumps to page-fault handler. 
+
+1. A miss in TLB is found.
+2. Get the PTE from the page table in memory.
+3. PTE shows that the page is not present in memory.
+4. Fetch the page from disk according to the information from PTE.
+5. The current process gets blocked and OS schedules another process in ready list.
+6. When I/O is done, OS updates page table, trigger a TLB miss handler.  (Overlapping the I/O and CPU)
+7. Same things happens as mentioned in TLB.
+
+![](../img/page-fault-flow.png)
+
+![](../img/page-fault-handler.png)
+
+What if the memory is full when OS trying to move a page from disk to the memory? Swap other page out.   
+
+But swapping doesn't necessarily happens when the system runs out of memory. HM(high mark) and LM(low mark) is used for swapping. When memory pages reach LM, swapping is performed and OS swaps out the pages until enough free pages no lower than HM is in memory. 
+
+What policy is used to evict pages? 
+
+Metrics: AMAT(average memory access time) 
+$$
+AMAT = T_m + (P_{miss}*T_D)
+$$
+FIFO (increasing the size of cache doesn't increate the hit rate!); Random; LRU (clock algorithm)
+
+Trashing
