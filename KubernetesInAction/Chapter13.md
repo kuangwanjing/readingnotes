@@ -68,5 +68,32 @@ https://github.com/luksa/kubernetes-in-action/blob/master/Chapter13/pod-security
 
 https://github.com/luksa/kubernetes-in-action/blob/master/Chapter13/psp-must-run-as.yaml
 
+Configuring allowed, default, and disallowed capabilities:
 
+* allowedCapabilities
+* defaultAddCapabilities: All capabilities listed under the defaultAddCapabilities field will be added to every deployed pod’s containers
+* requiredDropCapabilities: The pod must drop some capabilities. 
 
+Constraining the types of volumes pods can use
+
+Different policies can apply to different users although the policy is cluster-level resource and is applicable to all namespaces theorectically. 
+
+​	— clusterrole
+
+​	— clusterrole-binding a resource(psp)
+
+### Isolating the pod network
+
+Enabling network isolation in a namespace
+
+Allowing only some pods in the namespace to connect to a server pod:
+
+​	e.g only allow the webserver to access the databases but not other pods.
+
+​	ingress
+
+Isolating the network between Kubernetes namespaces
+
+Isolating using CIDR notation
+
+Limiting the outbound traffic of a set of pods: egress
