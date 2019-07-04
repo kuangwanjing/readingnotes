@@ -82,7 +82,22 @@
 * Master-Slave model: one master multiple slaves.
 * Consistency between master and slaves: 
   *  DB updates of slaves may lags behind the master.
-  * 
+  * Write on the master: Stale data and updated data can race in the slave during the synchronization. But since invalidations are guarded by daemon Mcsqueal, it avoids that kind of race condition. 
+  * Write on the slave: a marker is made to that key indicating that the value is potentially stale and query should be directed to the master.
+
+### Single Server Improvements
+
+* Perfomance optimization:
+  * automatic expanded hash table(avoid O(n) searching)
+  * global locks to protect the data structure(key-value store)
+* Adaptive Slab Allocator:
+  * different memory classes
+  * balancing the usage of classes
+* Transient Item Cache: short-lived items
+  * Independent storage
+* Software Upgrade: allow saving the context of a host while doing software upgrade!!
+
+
 
  
 
