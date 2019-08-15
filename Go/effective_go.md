@@ -126,3 +126,113 @@ If a semicolon is followed by a closing brace, it can be omitted.
      x = append(x, y...)
      ```
 
+### Initialization
+
+1. Constants
+   * is handled in compile time so the expression must be evaluable by the compiler(Go sematics)
+   * [iota](https://github.com/golang/go/wiki/Iota) helps to create complex enumeration type.
+2.  Variables: created in runtime
+3. The init function
+
+### Methods
+
+1. Pointers vs. Values
+   * receiver does not have to be a struct, any data type except a pointer or an interface can be defined as the receiver of a method.
+   * The rule about pointers vs. values for receivers is that value methods can be invoked on pointers and values, but pointer methods can only be invoked on pointers. (The language prevents the mistake from the language syntax)
+   * [good example](https://golang.org/doc/effective_go.html#pointers_vs_values) of binding a Writer method on ByteSlice, in which ByteSlice works as a writer that can receives any bytes from the input, then the program can do any string/bytes formatting on ByteSlice.
+
+### Interfaces and other types
+
+1. Interfaces
+   * Example: io.Writer implements writer interface.
+   * a type can implement multiple interfaces
+2. Conversions
+   * the defined type can be converted into its underlying type.
+3. Interface conversions and type assertions 
+   * value.(typeName) converts the interface into a certain type. If it can not be converted, it returned a false "ok". 
+4. Generality
+   * If a type exists only to implement an interface and will never have exported methods beyond that interface, there is no need to export the type itself.
+   * Other part of the program just treats the type as the interface that type implements so that the program stays clean. Example: crypto/cipher, the streamer is not interested in the encryption and decryption algorithm, so different encryption objects implements the Block interface and expose the interface methods and hide the detail inside. 
+5. Interfaces and methods
+   * see the examples
+   * methods can be converted too(into a method with the same signature) -- this becomes an adapter.
+
+### The blank identifier
+
+ it represents a write-only value to be used as a place-holder where a variable is needed but the actual value is irrelevant.
+
+1. The blank identifier in multiple assignment: general cases
+
+2. Unused imports and variables
+
+   * why import an unused package? -- for development use, sometimes the package is not needed but will be needed later. Deleting that line is annoying.
+
+   * Example:
+
+     ```go
+     package main
+     
+     import (
+         "fmt"
+         "io"
+         "log"
+         "os"
+     )
+     
+     var _ = fmt.Printf // For debugging; delete when done.
+     var _ io.Reader    // For debugging; delete when done.
+     
+     func main() {
+         fd, err := os.Open("test.go")
+         if err != nil {
+             log.Fatal(err)
+         }
+         // TODO: use fd.
+         _ = fd
+     }
+     ```
+
+3. Import for side effect:  it is useful to import a package only for its side effects, without any explicit use. (find more examples!)
+
+4. Interface checks
+
+   * type check at runtime
+   * Example: json 
+
+### Embedding
+
+```go
+// ReadWriter is the interface that combines the Reader and Writer interfaces.
+type ReadWriter interface {
+    Reader
+    Writer
+}
+```
+
+a union of interfaces
+
+1. interface: an interface can embed multiple other interfaces. So that the interface can work like one of these embeded interfaces. Example: see above. 
+2. Struct: it lists the types within the struct but does not give them field names. 
+
+Basic rules for embedding in struct: if an interface is embedded in a struct, then all the interface methods should be implemented by the struct otherwise this error occurs since the method is not addressable. 
+
+>  panic: runtime error: invalid memory address or nil pointer dereference
+
+If an interface is not embedded but the struct tries to implement the interface, implement all the interface methods then. 
+
+If a struct is embedded, then the outer struct can "borrow" all the method the inner struct has. 
+
+### Concurrency
+
+*Do not communicate by sharing memory; instead, share memory by communicating.*
+
+buffered channel can be used to limit the throughput(semaphore).
+
+channels of channels: the second channel is used to receive the result from the handler of the first channel. (Synchronization)
+
+example of leaky buffer
+
+### Error 
+
+panic & recover
+
